@@ -55,6 +55,7 @@ class Game extends React.Component {
 			stepNumber: 0,
 			reverseHistoryList: false,
 			winLine: [],
+			winner: null,
 		};
 	}
 	
@@ -72,43 +73,42 @@ class Game extends React.Component {
 		for (let i = 0; i < lines.length; i++) {
 			const [a, b, c] = lines[i];
 			if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-				if(this.state.winLine.length === 0) {
-					this.setState({
-						winLine: lines[i],
-					});
-				}
-				return squares[a];
+				return{
+					winLine: lines[i],
+					winner: squares[a],
+				};
 			}
 		}
-		if(this.state.winLine.length > 0) {
-			this.setState({
+		return{
 				winLine: [],
-			});
-		}
-		return null;
+				winner: null,
+		};
 	}
 	
 	handleClick(i) {
-		let history = this.state.history.slice(0, this.state.stepNumber + 1);
+		const tmpHistory = JSON.stringify(this.state.history.slice(0, this.state.stepNumber + 1));
+		let history = JSON.parse(tmpHistory);
 		const current = history[history.length - 1];
 		const squares = current.squares.slice();
-		//TODO:slice方法复制array会改变原数组的状态
 		history[history.length - 1].fontWeight = "normal";
-		if(this.calculateWinner(squares) || squares[i]) {
+		if(this.state.winner || squares[i]) {
 			return;
 		}
 		squares[i] = this.state.xIsNext ? 'X' : 'O';
 		const row = parseInt(i/3, 10) + 1;
 		const col = i%3 + 1;
 		const step = '(' + row + ',' + col + ')';
+		const winObj = this.calculateWinner(squares);
 		this.setState({
 			history: history.concat([{
 				squares: squares,
 				step: step,
-				winLine: [],
+				fontWeight: "normal",
 			}]),
 			xIsNext: !this.state.xIsNext,
 			stepNumber: history.length,
+			winner: winObj.winner,
+			winLine: winObj.winLine,
 		});
 	}
 	
@@ -117,13 +117,16 @@ class Game extends React.Component {
 			stepNumber: step,
 			xIsNext: (step % 2) === 0,
 		});
-		let history = this.state.history.slice();
-		//TODO:同上
+		const tmpHistory = JSON.stringify(this.state.history);
+		let history = JSON.parse(tmpHistory);
 		history.forEach(function (t, i) {
 			t.fontWeight = (i === step) ? "bold" : "normal";
 		});
+		const winObj = this.calculateWinner(history[step].squares);
 		this.setState({
 			history: history,
+			winner: winObj.winner,
+			winLine: winObj.winLine,
 		});
 	}
 	
@@ -136,7 +139,7 @@ class Game extends React.Component {
 	render() {
 		const history = this.state.history;
 		const current = history[this.state.stepNumber];
-		const winner = this.calculateWinner(current.squares);
+		const winner = this.state.winner;
 		
 		let moves = history.map((step, move) => {
 			const desc = move ?
