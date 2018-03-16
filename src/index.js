@@ -29,9 +29,9 @@ class Board extends React.Component {
 	render() {
 		let indents = [];
 		let boardRow = [];
-		for(var i=0; i<=6; i+=3){
+		for(let i=0; i<=6; i+=3){
 			boardRow = [];
-			for(var j=0; j<3; j++){
+			for(let j=0; j<3; j++){
 				boardRow.push(this.renderSquare(i+j));
 			}
 			indents.push(<div className={"board-row"} key={ 'row'+(i/3) }>{boardRow}</div>);
@@ -56,6 +56,7 @@ class Game extends React.Component {
 			reverseHistoryList: false,
 			winLine: [],
 			winner: null,
+			tie: false,
 		};
 	}
 	
@@ -76,12 +77,17 @@ class Game extends React.Component {
 				return{
 					winLine: lines[i],
 					winner: squares[a],
+					tie: false,
 				};
 			}
 		}
+		let tie = false;
+		if(!(squares.includes(null)))
+			tie = true;
 		return{
-				winLine: [],
-				winner: null,
+			winLine: [],
+			winner: null,
+			tie: tie,
 		};
 	}
 	
@@ -109,6 +115,7 @@ class Game extends React.Component {
 			stepNumber: history.length,
 			winner: winObj.winner,
 			winLine: winObj.winLine,
+			tie: winObj.tie,
 		});
 	}
 	
@@ -127,6 +134,7 @@ class Game extends React.Component {
 			history: history,
 			winner: winObj.winner,
 			winLine: winObj.winLine,
+			tie: winObj.tie,
 		});
 	}
 	
@@ -158,6 +166,8 @@ class Game extends React.Component {
 		let status;
 		if (winner) {
 			status = 'Winner: ' + winner;
+		} else if(this.state.tie) {
+			status = "tie";
 		} else {
 			status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
 		}
